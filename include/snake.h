@@ -4,20 +4,126 @@
 #include "math.h"
 #include "SceneManager.h"
 
-class SnakeComponent: public Component
+class SnakeComponent : public Component
 {
-public: 
+public:
+    SnakeComponent(int block_size)
+    {
+        this->block_size = block_size;
+    }
+
     void Init() override
     {
-        std::vector<unsigned char> paddleImgData = Engine::GetResourcesArchive()->GetFile("paddle.png");
-        object->AddComponent(new Image(paddleImgData));
-        object->SetPosition(Vector2(300, 300));
-        
+        head_downImgData = Engine::GetResourcesArchive()->GetFile("head_down.png");
+        head_upImgData = Engine::GetResourcesArchive()->GetFile("head_up.png");
+        head_leftImgData = Engine::GetResourcesArchive()->GetFile("head_left.png");
+        head_rightImgData = Engine::GetResourcesArchive()->GetFile("head_right.png");
+
+        object->AddComponent(new Image(head_downImgData));
+        object->SetPosition(Vector2(block_size*8, block_size*6));
+        direction = Vector2(0, 1); 
+        queuedDirection = Vector2(0, 0);
+
+        lastTurnPos = object->GetPosition();
+    }
+
+    void onKeyPressed(SDL_Keycode key) override
+    {
+        Vector2 currentPos = object->GetPosition();
+        float distanceSinceTurn = (currentPos - lastTurnPos).length();
+        if (distanceSinceTurn < block_size * 0.4f)
+        {
+            return;
+        }
+
+        if (queuedDirection.x != 0 || queuedDirection.y != 0)
+        {
+            return;
+        }
+
+        Vector2 newDir(0, 0);
+        if (key == SDLK_d)
+            newDir = Vector2(1, 0);
+        else if (key == SDLK_a)
+            newDir = Vector2(-1, 0);
+        else if (key == SDLK_w)
+            newDir = Vector2(0, -1);
+        else if (key == SDLK_s)
+            newDir = Vector2(0, 1);
+        else
+            return;
+
+        if (newDir.x == -direction.x && newDir.y == -direction.y)
+            return;
+
+        queuedDirection = newDir;
+        UpdateSprite(newDir);
+    }
+
+    void onKeyReleased(SDL_Keycode key) override
+    {
     }
 
     void Update(float deltaTime) override
     {
-        Vector2 direction  = Vector2(1,1);
-        object->SetPosition(object->GetPosition()+direction*deltaTime );
+        Vector2 pos = object->GetPosition();
+        pos += direction * deltaTime * speed;
+
+        const float epsilon = 1.0f;
+
+        bool aligned = false;
+        if (direction.x != 0)
+        {
+            float targetY = round(pos.y / block_size) * block_size;
+            aligned = fabs(pos.y - targetY) < epsilon;
+        }
+        else if (direction.y != 0)
+        {
+            float targetX = round(pos.x / block_size) * block_size;
+            aligned = fabs(pos.x - targetX) < epsilon;
+        }
+
+        if (aligned && (queuedDirection.x != 0 || queuedDirection.y != 0))
+        {
+            if (queuedDirection.x != 0)
+            {
+                pos.y = round(pos.y / block_size) * block_size;
+            }
+            else if (queuedDirection.y != 0)
+            {
+                pos.x = round(pos.x / block_size) * block_size;
+            }
+            direction = queuedDirection;
+            queuedDirection = Vector2(0, 0);
+
+            lastTurnPos = pos;
+        }
+
+        object->SetPosition(pos);
     }
+
+private:
+    void UpdateSprite(const Vector2 &dir)
+    {
+        if (dir.x > 0)
+            object->GetComponent<Image>()->SetNewSprite(head_rightImgData);
+        else if (dir.x < 0)
+            object->GetComponent<Image>()->SetNewSprite(head_leftImgData);
+        else if (dir.y < 0)
+            object->GetComponent<Image>()->SetNewSprite(head_upImgData);
+        else if (dir.y > 0)
+            object->GetComponent<Image>()->SetNewSprite(head_downImgData);
+    }
+
+    Vector2 direction;
+    Vector2 queuedDirection;
+    Vector2 lastTurnPos;
+
+    float speed = 100.0f;
+    std::vector<unsigned char> head_downImgData;
+    std::vector<unsigned char> head_upImgData;
+    std::vector<unsigned char> head_leftImgData;
+    std::vector<unsigned char> head_rightImgData;
+
+    int block_size;
 };
