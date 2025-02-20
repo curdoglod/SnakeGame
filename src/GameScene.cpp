@@ -4,7 +4,7 @@ void GameScene::Init()
 {
     GenBackground(); 
     Object* snake = CreateObject(); 
-    snake->AddComponent(new )
+    snake->AddComponent(new SnakeComponent()); 
 }
 
 void GameScene::Update()
