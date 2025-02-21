@@ -31,7 +31,7 @@ public:
     }
     void Update(float deltaTime) override {
         if (sprite != nullptr)
-        sprite->draw(object->GetPosition()); 
+        sprite->draw(object->GetPosition(), object->GetAngle()); 
     }
 
     void SetSize(const Vector2& newSize) {

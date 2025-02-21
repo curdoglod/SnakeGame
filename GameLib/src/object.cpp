@@ -5,7 +5,7 @@
 #include <typeinfo>
 #include "SceneManager.h"
 
-Object::Object(SceneManager* scene, SDL_Renderer* renderer_) :currentScene(scene), renderer(renderer_)
+Object::Object(SceneManager *scene, SDL_Renderer *renderer_) : currentScene(scene), renderer(renderer_)
 {
 	deltatime = 0;
 	layer = 0;
@@ -13,91 +13,109 @@ Object::Object(SceneManager* scene, SDL_Renderer* renderer_) :currentScene(scene
 	this->renderer = renderer_;
 }
 
-
-bool Object::Crossing(Object* obj, const float& x_range, const float& y_range) {
+bool Object::Crossing(Object *obj, const float &x_range, const float &y_range)
+{
 	Vector2 temp_pos = obj->GetPosition();
-	Vector2  temp_size = obj->GetSize();
+	Vector2 temp_size = obj->GetSize();
 
 	return ((temp_pos.y + temp_size.y * y_range) >= (position.y)) &&
-		(temp_pos.y) <= (position.y + size.y * y_range) &&
-		(temp_pos.x + temp_size.x * x_range >= position.x) && temp_pos.x <= position.x + size.x * x_range;
+		   (temp_pos.y) <= (position.y + size.y * y_range) &&
+		   (temp_pos.x + temp_size.x * x_range >= position.x) && temp_pos.x <= position.x + size.x * x_range;
 }
 
-
-bool Object::Crossing(Object* obj) {
+bool Object::Crossing(Object *obj)
+{
 	return Crossing(obj, 1.0f, 1.0f);
 }
 
-Vector2 Object::GetPosition() {
+Vector2 Object::GetPosition() const
+{
 	return position;
 }
 
-void Object::SetPosition(const Vector2& vec2) {
+void Object::SetPosition(const Vector2 &vec2)
+{
 	position = vec2;
 }
 
-
-void Object::SetPositionOnPlatform(const Vector2& vec2) {
+void Object::SetRotation(float angle)
+{
+	this->angle = angle;
+}
+void Object::SetPositionOnPlatform(const Vector2 &vec2)
+{
 	SetPosition(Vector2(vec2.x, vec2.y - size.y));
 }
 
-
-void Object::MoveY(const float& pos_y) {
+void Object::MoveY(const float &pos_y)
+{
 	position.y += pos_y * deltatime * 80;
 }
 
-
-void Object::MoveX(const float& pos_x) {
+void Object::MoveX(const float &pos_x)
+{
 	position.x += pos_x * deltatime * 80;
 }
 
-Vector2 Object::GetSize() {
+Vector2 Object::GetSize()
+{
 	return size;
 }
 
-void Object::InitSize(Image* img) {
-	if (img != nullptr) size = img->GetSize();
+void Object::InitSize(Image *img)
+{
+	if (img != nullptr)
+		size = img->GetSize();
 }
-void Object::InitSize() {
-	Image* img = GetComponent<Image>(); 
-	if (img  != nullptr) size = img->GetSize();
-
+void Object::InitSize()
+{
+	Image *img = GetComponent<Image>();
+	if (img != nullptr)
+		size = img->GetSize();
 }
 
-
-
-void Object::SetLayer(int newLayer) {
+void Object::SetLayer(int newLayer)
+{
 	layer = newLayer;
 	currentScene->updateLayer();
 }
 
-int Object::GetLayer() const {
+int Object::GetLayer() const
+{
 	return layer;
 }
 
-void Object::AddComponent(Component* component) {
+void Object::AddComponent(Component *component)
+{
 
-	if (this) {
-		for (auto it = components.begin(); it != components.end(); ) {
-			if (typeid(*component) == typeid(**it)) {
-				delete* it; 
-				it = components.erase(it); 
+	if (this)
+	{
+		for (auto it = components.begin(); it != components.end();)
+		{
+			if (typeid(*component) == typeid(**it))
+			{
+				delete *it;
+				it = components.erase(it);
 			}
-			else {
-				++it; 
+			else
+			{
+				++it;
 			}
 		}
 		component->setOwner(this);
 		component->Init();
 		components.push_back(component);
 	}
-	else  std::cerr << "Object didn't create " << std::endl;
-
+	else
+		std::cerr << "Object didn't create " << std::endl;
 }
 
-Component* Object::GetComponent(const std::type_info& ti) const {
-	for (auto& component : components) {
-		if (typeid(*component) == ti) {
+Component *Object::GetComponent(const std::type_info &ti) const
+{
+	for (auto &component : components)
+	{
+		if (typeid(*component) == ti)
+		{
 			return component;
 		}
 	}
@@ -105,35 +123,41 @@ Component* Object::GetComponent(const std::type_info& ti) const {
 }
 
 template <typename T>
-void Object::RemoveComponent() {
-	Component* comp = this->GetComponent(typeid(T));
-	if (comp != nullptr) {
+void Object::RemoveComponent()
+{
+	Component *comp = this->GetComponent(typeid(T));
+	if (comp != nullptr)
+	{
 		delete comp;
 
 		components.erase(std::remove(components.begin(), components.end(), comp), components.end());
 	}
 }
 
-
-void Object::update(float deltaTime) {
-	for (auto& component : components) {
+void Object::update(float deltaTime)
+{
+	for (auto &component : components)
+	{
 		component->Update();
 		component->Update(deltaTime);
 	}
 	this->deltatime = deltaTime;
 }
 
-SceneManager* Object::GetScene() const {
+SceneManager *Object::GetScene() const
+{
 	return currentScene;
 }
 
-SDL_Renderer* Object::GetRenderer() const
+SDL_Renderer *Object::GetRenderer() const
 {
 	return renderer;
 }
 
-void Object::UpdateEvents(SDL_Event& event) {
-	for (auto& component : components) {
+void Object::UpdateEvents(SDL_Event &event)
+{
+	for (auto &component : components)
+	{
 		int x, y;
 		SDL_GetMouseState(&x, &y);
 		if (event.type == SDL_MOUSEBUTTONDOWN)
@@ -149,16 +173,17 @@ void Object::UpdateEvents(SDL_Event& event) {
 	}
 }
 
-void Object::SetActive(bool status) {
+void Object::SetActive(bool status)
+{
 
 	active = status;
-
 }
 
-Object::~Object() {
-	for (auto* component : components) {
+Object::~Object()
+{
+	for (auto *component : components)
+	{
 		delete component;
 	}
 	components.clear();
 }
-

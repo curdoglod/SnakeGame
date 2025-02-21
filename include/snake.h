@@ -15,13 +15,10 @@ public:
     void Init() override
     {
         head_downImgData = Engine::GetResourcesArchive()->GetFile("head_down.png");
-        head_upImgData = Engine::GetResourcesArchive()->GetFile("head_up.png");
-        head_leftImgData = Engine::GetResourcesArchive()->GetFile("head_left.png");
-        head_rightImgData = Engine::GetResourcesArchive()->GetFile("head_right.png");
 
         object->AddComponent(new Image(head_downImgData));
-        object->SetPosition(Vector2(block_size*8, block_size*6));
-        direction = Vector2(0, 1); 
+        object->SetPosition(Vector2(block_size * 8, block_size * 6));
+        direction = Vector2(0, 1);
         queuedDirection = Vector2(0, 0);
 
         lastTurnPos = object->GetPosition();
@@ -106,13 +103,13 @@ private:
     void UpdateSprite(const Vector2 &dir)
     {
         if (dir.x > 0)
-            object->GetComponent<Image>()->SetNewSprite(head_rightImgData);
+            object->SetRotation(270);
         else if (dir.x < 0)
-            object->GetComponent<Image>()->SetNewSprite(head_leftImgData);
+            object->SetRotation(90);
         else if (dir.y < 0)
-            object->GetComponent<Image>()->SetNewSprite(head_upImgData);
+            object->SetRotation(180);
         else if (dir.y > 0)
-            object->GetComponent<Image>()->SetNewSprite(head_downImgData);
+            object->SetRotation(0);
     }
 
     Vector2 direction;
@@ -121,9 +118,6 @@ private:
 
     float speed = 100.0f;
     std::vector<unsigned char> head_downImgData;
-    std::vector<unsigned char> head_upImgData;
-    std::vector<unsigned char> head_leftImgData;
-    std::vector<unsigned char> head_rightImgData;
-
+    std::vector<Object *> body;
     int block_size;
 };

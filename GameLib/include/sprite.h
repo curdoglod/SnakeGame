@@ -11,8 +11,9 @@ public:
     ~Sprite();
 
     void draw();
-    void draw(const Vector2& vec2);
+    void draw(const Vector2& vec2, float _angle);
     void setPosition(int x, int y);
+    void setAngle(float angle);
     void setSize(int width, int height);
     Vector2 getSize();
     friend class SceneManager;
@@ -23,6 +24,7 @@ private:
     SDL_Texture* m_texture;
     SDL_Renderer* m_renderer;
     SDL_Rect m_destRect;
+    float angle = 0.0; 
 };
 
 #endif // SPRITE_H

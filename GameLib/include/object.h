@@ -15,15 +15,18 @@ class SceneManager;
 
 class Object {
 public:
-    virtual bool Crossing(Object* obj, const float& x_range, const float& y_range);
-    virtual bool Crossing(Object* obj);
-    virtual Vector2 GetPosition();
-    virtual void SetPosition(const Vector2& vec2);
-    virtual void SetPositionOnPlatform(const Vector2 & vec2);
-    virtual void MoveY(const float& pos_y);
-    virtual void MoveX(const float& pos_x);
+    bool Crossing(Object* obj, const float& x_range, const float& y_range);
+    bool Crossing(Object* obj);
+    Vector2 GetPosition() const;
+    float GetAngle() const {return angle; }; 
+    void SetPosition(const Vector2& vec2);
+    void SetRotation(float angle);
 
-    virtual Vector2 GetSize();
+    void SetPositionOnPlatform(const Vector2 & vec2);
+    void MoveY(const float& pos_y);
+    void MoveX(const float& pos_x);
+
+    Vector2 GetSize();
     void InitSize(Image* img);
     void InitSize();
     void SetLayer(int layer);
@@ -55,6 +58,7 @@ private:
     std::vector<Component*> components;
     Vector2 position;
     Vector2 size;
+    float angle; 
     int layer;
     bool active; 
     float deltatime;

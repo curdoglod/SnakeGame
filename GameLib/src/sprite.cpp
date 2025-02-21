@@ -57,10 +57,11 @@ void Sprite::draw() {
 
 }
 
-void Sprite::draw(const Vector2& vec2) {
+void Sprite::draw(const Vector2& vec2, float _angle) {
+    setAngle(_angle); 
     m_destRect.x = (int)vec2.x;
     m_destRect.y = (int)vec2.y;
-    SDL_RenderCopyEx(m_renderer, m_texture, nullptr, &m_destRect, 0, nullptr, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(m_renderer, m_texture, nullptr, &m_destRect, angle, nullptr, SDL_FLIP_NONE);
 }
 
 void Sprite::SetColorAndOpacity(Uint8 red, Uint8 green, Uint8 blue, float alpha) {
@@ -73,6 +74,7 @@ void Sprite::setPosition(int x, int y) {
     m_destRect.x = x;
     m_destRect.y = y;
 }
+void Sprite::setAngle(float angle) { this->angle = angle; }
 
 void Sprite::setSize(int width, int height) {
     m_destRect.w = width;

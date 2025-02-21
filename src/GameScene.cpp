@@ -14,11 +14,15 @@ void GameScene::Init()
     std::vector<unsigned char> appleImg = Engine::GetResourcesArchive()->GetFile("apple.png");
 
     apple->AddComponent(new Image(appleImg));
-    apple->SetPosition(Vector2(rand() % (int)block_count.x * block_size, rand() % (int)block_count.y * block_size));
+    apple->SetPosition(RandomApple()); 
     while (apple->Crossing(snake))
     {
-        apple->SetPosition(Vector2(rand() % 10 * block_size, rand() % 14 * block_size));
+        apple->SetPosition(RandomApple());
     }
+    appleCount=0; 
+    scoreObj = CreateObject(); 
+    scoreObj->SetPosition(Vector2(block_size/5, block_size/2));
+    scoreObj->AddComponent(new TextComponent(20, "Score: " + std::to_string(appleCount), TextAlignment::LEFT));
 }
 
 void GameScene::Update()
@@ -27,7 +31,9 @@ void GameScene::Update()
     {
         while (apple->Crossing(snake))
         {
-            apple->SetPosition(Vector2(rand() % 10 * block_size, rand() % 14 * block_size));
+            apple->SetPosition(RandomApple());
+            appleCount++;
+            scoreObj->GetComponent<TextComponent>()->setText("Score: " + std::to_string(appleCount));
         }
     }
 }
@@ -43,13 +49,19 @@ void GameScene::GenBackground()
             Object *block_background = CreateObject();
             block_background->SetPosition(Vector2(i * block_size, j * block_size));
 
-            if ((i % 2 == 1 && j % 2 == 0) || (i % 2 == 0 && j % 2 == 1))
-            {
-                block_background->AddComponent(new Image(block_dark_img));
-            }
-            else
+
+            if ((j==0)||(i % 2 == 1 && j % 2 == 0) || (i % 2 == 0 && j % 2 == 1))
             {
                 block_background->AddComponent(new Image(block_light_img));
             }
+            else
+            {
+                block_background->AddComponent(new Image(block_dark_img));
+            }
         }
+}
+
+Vector2 GameScene::RandomApple()
+{
+    return Vector2(rand() % (int)block_count.x * block_size, rand() % (int)block_count.y * block_size); 
 }
