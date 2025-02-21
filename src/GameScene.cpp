@@ -33,6 +33,7 @@ void GameScene::Update()
         {
             apple->SetPosition(RandomApple());
             appleCount++;
+            snake->GetComponent<SnakeComponent>()->AddSegment();
             scoreObj->GetComponent<TextComponent>()->setText("Score: " + std::to_string(appleCount));
         }
     }

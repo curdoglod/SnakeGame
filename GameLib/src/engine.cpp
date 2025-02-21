@@ -132,6 +132,7 @@ void Engine::ChangeScene(SceneManager* newScene) {
     
     impl->currentScene = newScene;
     impl->currentScene->PreInit(this, impl->m_renderer, impl->m_window);
+    impl->currentScene->Awake();
     impl->currentScene->Init();
    
   

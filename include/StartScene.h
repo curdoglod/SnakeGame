@@ -4,7 +4,7 @@
 
 class StartScene : public SceneManager {
 
-
+    void Awake() override; 
     void Init() override; 
 
 private:

@@ -371,6 +371,10 @@ struct Vector2 {
 		return *this;
 	}
 
+	bool operator==(const Vector2& other) {
+		return (x==other.x && y==other.y);
+	}
+
 	friend std::ostream& operator<<(std::ostream& os, const Vector2& vec) {
 		os << '(' << vec.x << ", " << vec.y << ')';
 		return os;

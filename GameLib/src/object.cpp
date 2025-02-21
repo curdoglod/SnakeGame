@@ -49,12 +49,12 @@ void Object::SetPositionOnPlatform(const Vector2 &vec2)
 
 void Object::MoveY(const float &pos_y)
 {
-	position.y += pos_y * deltatime * 80;
+	position.y += pos_y;
 }
 
 void Object::MoveX(const float &pos_x)
 {
-	position.x += pos_x * deltatime * 80;
+	position.x += pos_x;
 }
 
 Vector2 Object::GetSize()
@@ -177,6 +177,29 @@ void Object::SetActive(bool status)
 {
 
 	active = status;
+}
+
+Object *Object::CloneObject() const
+{
+	Object *clone = currentScene->CreateObject();
+	clone->position = position;
+	clone->size = size;
+	clone->angle = angle;
+	clone->layer = layer;
+	clone->active = active;
+	clone->deltatime = deltatime;
+	for (auto *comp : components)
+	{
+		if (comp)
+		{
+			Component *compClone = comp->Clone();
+			if (compClone != nullptr)
+			{
+				clone->AddComponent(compClone);
+			}
+		}
+	}
+	return clone;
 }
 
 Object::~Object()

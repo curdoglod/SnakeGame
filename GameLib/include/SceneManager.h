@@ -25,11 +25,13 @@ public:
         SetWindowSize((int)GetWindowSize().x, (int)GetWindowSize().y);
     }
 
+    virtual void Awake() {}
+
     virtual void Init() {}
 
     virtual void Update() {}
     
-   void UpdateEvents(SDL_Event event) {
+    void UpdateEvents(SDL_Event event) {
       
         for (auto& object : objects) {
             if (object->active) {

@@ -47,7 +47,8 @@ public:
         Component* comp = this->GetComponent(typeid(T));
         return dynamic_cast<T*>(comp);
     }
-  
+    Object* CloneObject() const;
+
     friend class Engine; 
     friend class SceneManager;
 private:

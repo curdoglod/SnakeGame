@@ -4,6 +4,11 @@
 #include "math.h"
 #include "SceneManager.h"
 
+static Vector2 Lerp(const Vector2 &start, const Vector2 &end, float t)
+{
+    return start + (end - start) * t;
+}
+
 class SnakeComponent : public Component
 {
 public:
@@ -14,39 +19,48 @@ public:
 
     void Init() override
     {
-        head_downImgData = Engine::GetResourcesArchive()->GetFile("head_down.png");
+        headImg = Engine::GetResourcesArchive()->GetFile("head_down.png");
+        bodyImg = Engine::GetResourcesArchive()->GetFile("body.png");
+        bodyRotImg = Engine::GetResourcesArchive()->GetFile("bodyRot.png");
 
-        object->AddComponent(new Image(head_downImgData));
-        object->SetPosition(Vector2(block_size * 8, block_size * 6));
+        object->AddComponent(new Image(headImg));
+
+        Vector2 startPos(block_size * 8, block_size * 6);
+        object->SetPosition(startPos);
+
         direction = Vector2(0, 1);
         queuedDirection = Vector2(0, 0);
+        angle = 0;
 
-        lastTurnPos = object->GetPosition();
+        speed = 160.0f;
+        moveDuration = (float)block_size / speed;
+        moveTimer = 0.0f;
+
+        gridPositions.clear();
+        previousGridPositions.clear();
+        gridPositions.push_back(startPos);
+        Vector2 tailPos = startPos - direction * block_size;
+        gridPositions.push_back(tailPos);
+
+        previousGridPositions = gridPositions;
+
+        Object *seg = CreateObject();
+        seg->AddComponent(new Image(bodyImg));
+        seg->SetPosition(tailPos);
+        bodySegments.push_back(seg);
     }
 
     void onKeyPressed(SDL_Keycode key) override
     {
-        Vector2 currentPos = object->GetPosition();
-        float distanceSinceTurn = (currentPos - lastTurnPos).length();
-        if (distanceSinceTurn < block_size * 0.4f)
-        {
-            return;
-        }
-
-        if (queuedDirection.x != 0 || queuedDirection.y != 0)
-        {
-            return;
-        }
-
         Vector2 newDir(0, 0);
-        if (key == SDLK_d)
-            newDir = Vector2(1, 0);
-        else if (key == SDLK_a)
-            newDir = Vector2(-1, 0);
-        else if (key == SDLK_w)
+        if (key == SDLK_w)
             newDir = Vector2(0, -1);
         else if (key == SDLK_s)
             newDir = Vector2(0, 1);
+        else if (key == SDLK_a)
+            newDir = Vector2(-1, 0);
+        else if (key == SDLK_d)
+            newDir = Vector2(1, 0);
         else
             return;
 
@@ -54,7 +68,7 @@ public:
             return;
 
         queuedDirection = newDir;
-        UpdateSprite(newDir);
+        UpdateHeadSprite(newDir);
     }
 
     void onKeyReleased(SDL_Keycode key) override
@@ -63,61 +77,86 @@ public:
 
     void Update(float deltaTime) override
     {
-        Vector2 pos = object->GetPosition();
-        pos += direction * deltaTime * speed;
-
-        const float epsilon = 1.0f;
-
-        bool aligned = false;
-        if (direction.x != 0)
+        moveTimer += deltaTime;
+        while (moveTimer >= moveDuration)
         {
-            float targetY = round(pos.y / block_size) * block_size;
-            aligned = fabs(pos.y - targetY) < epsilon;
-        }
-        else if (direction.y != 0)
-        {
-            float targetX = round(pos.x / block_size) * block_size;
-            aligned = fabs(pos.x - targetX) < epsilon;
-        }
+            moveTimer -= moveDuration;
+            previousGridPositions = gridPositions;
 
-        if (aligned && (queuedDirection.x != 0 || queuedDirection.y != 0))
-        {
-            if (queuedDirection.x != 0)
+            if (queuedDirection.x != 0 || queuedDirection.y != 0)
             {
-                pos.y = round(pos.y / block_size) * block_size;
+                direction = queuedDirection;
+                queuedDirection = Vector2(0, 0);
             }
-            else if (queuedDirection.y != 0)
-            {
-                pos.x = round(pos.x / block_size) * block_size;
-            }
-            direction = queuedDirection;
-            queuedDirection = Vector2(0, 0);
 
-            lastTurnPos = pos;
+            Vector2 newHeadPos = gridPositions[0] + direction * block_size;
+
+            std::vector<Vector2> newGridPositions;
+            newGridPositions.push_back(newHeadPos);
+            for (size_t i = 1; i < gridPositions.size(); i++)
+            {
+                newGridPositions.push_back(gridPositions[i - 1]);
+            }
+            gridPositions = newGridPositions;
         }
 
-        object->SetPosition(pos);
+        float t = moveTimer / moveDuration;
+
+        Vector2 headPos = Lerp(previousGridPositions[0], gridPositions[0], t);
+        object->SetPosition(headPos);
+
+        for (size_t i = 0; i < bodySegments.size(); i++)
+        {
+            Vector2 segPos = Lerp(previousGridPositions[i + 1], gridPositions[i + 1], t);
+            bodySegments[i]->SetPosition(segPos);
+            Vector2 moveVec = gridPositions[i + 1] - previousGridPositions[i + 1];
+
+            float segAngle = (fabs(moveVec.x) > fabs(moveVec.y)) ? 90.0f : 0.0f;
+            bodySegments[i]->SetRotation(segAngle);
+        }
+    }
+
+    void AddSegment()
+    {
+        Vector2 tailPos = gridPositions.back();
+        gridPositions.push_back(tailPos);
+        previousGridPositions.push_back(tailPos);
+
+        Object *seg = CreateObject();
+        seg->AddComponent(new Image(bodyImg));
+        seg->SetPosition(tailPos);
+        bodySegments.push_back(seg);
     }
 
 private:
-    void UpdateSprite(const Vector2 &dir)
+    void UpdateHeadSprite(const Vector2 &dir)
     {
         if (dir.x > 0)
-            object->SetRotation(270);
+            angle = 270;
         else if (dir.x < 0)
-            object->SetRotation(90);
+            angle = 90;
         else if (dir.y < 0)
-            object->SetRotation(180);
+            angle = 180;
         else if (dir.y > 0)
-            object->SetRotation(0);
+            angle = 0;
+        object->SetRotation(angle);
     }
+
+private:
+    std::vector<unsigned char> headImg;
+    std::vector<unsigned char> bodyImg;
+    std::vector<unsigned char> bodyRotImg; 
 
     Vector2 direction;
     Vector2 queuedDirection;
-    Vector2 lastTurnPos;
+    float angle;
 
-    float speed = 100.0f;
-    std::vector<unsigned char> head_downImgData;
-    std::vector<Object *> body;
+    float speed;
     int block_size;
+    float moveDuration;
+    float moveTimer;
+
+    std::vector<Object *> bodySegments;
+    std::vector<Vector2> gridPositions;
+    std::vector<Vector2> previousGridPositions;
 };

@@ -11,6 +11,15 @@ public:
 	void Init() override;
 
 	void Update() override;
+
+	void onKeyReleased(SDL_Keycode key) override
+	{
+		if(key == SDLK_ESCAPE)
+		{
+			SwitchToScene(new StartScene());
+		}
+	}
+
 	~MainGameScene() {
 
 	}

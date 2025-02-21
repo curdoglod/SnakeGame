@@ -2,6 +2,7 @@
 #define COMPONENT_H
 #include "Utils.h"
 #include "object.h"
+#include "SceneManager.h"
 class Object;
 
 class Component {
@@ -29,10 +30,16 @@ public:
     virtual void onKeyPressed(SDL_Keycode key) {}
     virtual void onKeyReleased(SDL_Keycode key) {}
 
-
+    virtual Component* Clone() const { return nullptr; }
    
 protected:
     Object* object = nullptr;
+    Object* CreateObject()
+    {
+        if(!object) return nullptr;  
+
+        return object->GetScene()->CreateObject();
+    }
 private:
     friend class Object; 
     void setOwner(Object* owner) {
